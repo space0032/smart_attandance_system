@@ -2,6 +2,7 @@ package com.attendance.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,8 +15,8 @@ import java.time.LocalTime;
  * Attendance entity representing attendance records
  */
 @Entity
-@Table(name = "attendance", 
-       uniqueConstraints = @UniqueConstraint(columnNames = {"student_id", "classroom_id", "attendance_date"}))
+@Table(name = "attendance", uniqueConstraints = @UniqueConstraint(columnNames = { "student_id", "classroom_id",
+        "attendance_date" }))
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -28,11 +29,13 @@ public class Attendance {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "student_id", nullable = false)
     @NotNull(message = "Student is required")
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Student student;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "classroom_id", nullable = false)
     @NotNull(message = "Classroom is required")
+    @JsonIgnoreProperties({ "hibernateLazyInitializer", "handler" })
     private Classroom classroom;
 
     @Column(name = "attendance_date", nullable = false)
