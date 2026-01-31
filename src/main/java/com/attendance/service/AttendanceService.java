@@ -144,7 +144,8 @@ public class AttendanceService {
         }
 
         // Increment detection count
-        int newCount = attendance.getDetectionCount() + 1;
+        int currentCount = attendance.getDetectionCount() != null ? attendance.getDetectionCount() : 0;
+        int newCount = currentCount + 1;
         attendance.setDetectionCount(newCount);
         attendance.setConfidenceScore(confidenceScore); // Update with latest confidence
 

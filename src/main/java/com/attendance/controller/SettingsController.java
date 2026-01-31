@@ -71,4 +71,23 @@ public class SettingsController {
 
         return "redirect:/settings";
     }
+
+    @PostMapping("/settings/toggle")
+    public String toggleCamera(@RequestParam Long configId, @RequestParam boolean active,
+            RedirectAttributes redirectAttributes) {
+        try {
+            CameraConfig config = cameraConfigRepository.findById(configId)
+                    .orElseThrow(() -> new IllegalArgumentException("Invalid configuration ID"));
+
+            config.setActive(active);
+            cameraConfigRepository.save(config);
+
+            String status = active ? "started" : "stopped";
+            redirectAttributes.addFlashAttribute("successMessage",
+                    "Camera " + status + " for " + config.getClassroom().getCourseCode());
+        } catch (Exception e) {
+            redirectAttributes.addFlashAttribute("errorMessage", "Error updating camera status: " + e.getMessage());
+        }
+        return "redirect:/settings";
+    }
 }

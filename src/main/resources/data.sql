@@ -15,5 +15,6 @@ INSERT INTO students (id, student_id, first_name, last_name, email, department, 
 (5, 'STU005', 'Robert', 'Brown', 'robert.b@university.edu', 'Software Engineering', CURRENT_TIMESTAMP);
 
 -- Reset keys to prevent collisions with auto-generated IDs
-ALTER TABLE classrooms ALTER COLUMN id RESTART WITH 10;
-ALTER TABLE students ALTER COLUMN id RESTART WITH 10;
+-- Reset keys to prevent collisions (Dynamic Reset)
+ALTER TABLE classrooms ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM classrooms);
+ALTER TABLE students ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM students);

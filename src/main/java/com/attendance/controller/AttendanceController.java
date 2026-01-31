@@ -34,7 +34,7 @@ public class AttendanceController {
     /**
      * Process camera image and mark attendance
      * 
-     * @param imageFile Camera image file
+     * @param imageFile   Camera image file
      * @param classroomId Classroom ID
      * @return API response with marked attendance records
      */
@@ -42,7 +42,7 @@ public class AttendanceController {
     public ResponseEntity<ApiResponse<List<Attendance>>> processCameraFeed(
             @RequestParam("image") MultipartFile imageFile,
             @RequestParam("classroomId") Long classroomId) {
-        
+
         try {
             if (imageFile.isEmpty()) {
                 return ResponseEntity.badRequest()
@@ -51,10 +51,10 @@ public class AttendanceController {
 
             List<Attendance> attendanceRecords = attendanceService
                     .processCameraFeed(imageFile, classroomId);
-            
-            String message = String.format("Processed camera feed, marked attendance for %d student(s)", 
+
+            String message = String.format("Processed camera feed, marked attendance for %d student(s)",
                     attendanceRecords.size());
-            
+
             return ResponseEntity.ok(ApiResponse.success(message, attendanceRecords));
         } catch (IllegalArgumentException e) {
             log.error("Validation error during camera feed processing", e);
@@ -71,23 +71,23 @@ public class AttendanceController {
      * Export attendance to Excel
      * 
      * @param classroomId Classroom ID
-     * @param date Attendance date
+     * @param date        Attendance date
      * @return Excel file download
      */
     @GetMapping("/export")
     public ResponseEntity<InputStreamResource> exportAttendance(
             @RequestParam("classroomId") Long classroomId,
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        
+
         try {
             ByteArrayInputStream excelFile = excelExportService
                     .exportAttendanceToExcel(classroomId, date);
-            
+
             String filename = excelExportService.getFilename(date);
-            
+
             HttpHeaders headers = new HttpHeaders();
             headers.add(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + filename);
-            
+
             return ResponseEntity.ok()
                     .headers(headers)
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
@@ -102,18 +102,20 @@ public class AttendanceController {
      * Get attendance list by date and classroom
      * 
      * @param classroomId Classroom ID
-     * @param date Attendance date
+     * @param date        Attendance date
      * @return API response with attendance list
      */
     @GetMapping("/list")
     public ResponseEntity<ApiResponse<List<Attendance>>> getAttendanceList(
             @RequestParam("classroomId") Long classroomId,
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        
+
         try {
+            log.info("Fetching attendance for date: {} and classroom: {}", date, classroomId);
             List<Attendance> attendanceList = attendanceService
                     .getAttendanceByDateAndClassroom(date, classroomId);
-            
+            log.info("Found {} attendance records", attendanceList.size());
+
             return ResponseEntity.ok(ApiResponse.success(
                     "Attendance records retrieved successfully", attendanceList));
         } catch (Exception e) {
@@ -132,10 +134,10 @@ public class AttendanceController {
     @GetMapping("/today/{classroomId}")
     public ResponseEntity<ApiResponse<List<Attendance>>> getTodayAttendance(
             @PathVariable Long classroomId) {
-        
+
         try {
             List<Attendance> attendanceList = attendanceService.getTodayAttendance(classroomId);
-            
+
             return ResponseEntity.ok(ApiResponse.success(
                     "Today's attendance retrieved successfully", attendanceList));
         } catch (Exception e) {
@@ -154,10 +156,10 @@ public class AttendanceController {
     @GetMapping("/stats")
     public ResponseEntity<ApiResponse<AttendanceService.AttendanceStats>> getAttendanceStats(
             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        
+
         try {
             AttendanceService.AttendanceStats stats = attendanceService.getAttendanceStats(date);
-            
+
             return ResponseEntity.ok(ApiResponse.success(
                     "Attendance statistics retrieved successfully", stats));
         } catch (Exception e) {

@@ -33,7 +33,13 @@ public class CameraService {
 
         try {
             log.debug("Attempting to connect to camera: {}", config.getClassroom().getCourseCode());
-            capture.open(fullUrl);
+
+            // Check if URL is a single digit (for local webcam index)
+            if (fullUrl.matches("\\d+")) {
+                capture.open(Integer.parseInt(fullUrl));
+            } else {
+                capture.open(fullUrl);
+            }
 
             if (!capture.isOpened()) {
                 log.error("Failed to open camera stream for classroom: {}", config.getClassroom().getCourseCode());

@@ -54,7 +54,7 @@ public class Attendance {
     private Double confidenceScore;
 
     @Column(name = "detection_count")
-    private int detectionCount = 0;
+    private Integer detectionCount = 0;
 
     @Column(name = "created_at", nullable = false, updatable = false)
     private LocalDateTime createdAt;
