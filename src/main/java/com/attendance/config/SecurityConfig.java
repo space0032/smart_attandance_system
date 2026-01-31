@@ -25,22 +25,35 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .authorizeHttpRequests(authz -> authz
-                .requestMatchers("/", "/register", "/api/**", "/css/**", "/js/**", "/uploads/**").permitAll()
-                .anyRequest().authenticated()
-            )
-            .csrf(csrf -> csrf
-                .ignoringRequestMatchers("/api/**")  // Disable CSRF for API endpoints
-            )
-            .formLogin(form -> form
-                .loginPage("/login")
-                .permitAll()
-            )
-            .logout(logout -> logout
-                .permitAll()
-            );
+                .authorizeHttpRequests(authz -> authz
+                        .requestMatchers("/", "/register", "/api/**", "/css/**", "/js/**", "/uploads/**").permitAll()
+                        .anyRequest().authenticated())
+                .csrf(csrf -> csrf
+                        .ignoringRequestMatchers("/api/**") // Disable CSRF for API endpoints
+                )
+                .formLogin(form -> form
+                        .loginPage("/login")
+                        .permitAll())
+                .logout(logout -> logout
+                        .permitAll());
 
         return http.build();
+    }
+
+    /**
+     * In-memory user configuration
+     */
+    @Bean
+    public org.springframework.security.core.userdetails.UserDetailsService userDetailsService(
+            PasswordEncoder passwordEncoder) {
+        org.springframework.security.core.userdetails.UserDetails user = org.springframework.security.core.userdetails.User
+                .builder()
+                .username("admin")
+                .password(passwordEncoder.encode("admin123"))
+                .roles("USER", "ADMIN")
+                .build();
+
+        return new org.springframework.security.provisioning.InMemoryUserDetailsManager(user);
     }
 
     /**
