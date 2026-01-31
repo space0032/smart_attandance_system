@@ -42,6 +42,11 @@
         </dependency>
         
         <dependency>
+            <groupId>org.thymeleaf.extras</groupId>
+            <artifactId>thymeleaf-extras-springsecurity6</artifactId>
+        </dependency>
+        
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-security</artifactId>
         </dependency>
@@ -102,6 +107,13 @@
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-test</artifactId>
             <scope>test</scope>
+        </dependency>
+
+        <!-- Custom Validation Sanitizer -->
+        <dependency>
+            <groupId>io.github.space0032</groupId>
+            <artifactId>java-validation-sanitizer</artifactId>
+            <version>1.0.0</version>
         </dependency>
     </dependencies>
     
