@@ -37,6 +37,18 @@ public class CameraConfig {
     @Column(name = "is_active")
     private boolean active = true;
 
-    @Column(name = "capture_interval_seconds")
-    private int captureIntervalSeconds = 5;
+    @Column(name = "lecture_duration_minutes")
+    private int lectureDurationMinutes = 60;
+
+    @Column(name = "snapshots_per_lecture")
+    private int snapshotsPerLecture = 4;
+
+    /**
+     * Calculate interval in seconds dynamically
+     */
+    public long getCalculatedIntervalSeconds() {
+        if (snapshotsPerLecture <= 0)
+            return 300; // Default fallback
+        return (long) (lectureDurationMinutes * 60) / snapshotsPerLecture;
+    }
 }

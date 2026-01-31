@@ -2,7 +2,7 @@ package com.attendance.service;
 
 import com.attendance.model.Attendance;
 import com.attendance.model.CameraConfig;
-import com.attendance.repository.CameraConfigRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opencv.core.Mat;

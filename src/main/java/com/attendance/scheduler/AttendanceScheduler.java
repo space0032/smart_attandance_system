@@ -39,7 +39,7 @@ public class AttendanceScheduler {
             Instant lastRun = lastCaptureShortcuts.getOrDefault(config.getId(), Instant.MIN);
             long secondsSinceLastRun = java.time.Duration.between(lastRun, now).getSeconds();
 
-            if (secondsSinceLastRun >= config.getCaptureIntervalSeconds()) {
+            if (secondsSinceLastRun >= config.getCalculatedIntervalSeconds()) {
                 try {
                     cameraService.captureAndProcess(config);
                     lastCaptureShortcuts.put(config.getId(), now);

@@ -93,9 +93,14 @@
                                         th:value="${config != null ? config.password : ''}">
                                 </div>
                                 <div class="col-md-2">
-                                    <label class="form-label">Interval (sec)</label>
-                                    <input type="number" class="form-control" name="captureIntervalSeconds"
-                                        th:value="${config != null ? config.captureIntervalSeconds : 5}" min="1">
+                                    <label class="form-label">Duration (min)</label>
+                                    <input type="number" class="form-control" name="lectureDurationMinutes"
+                                        th:value="${config != null ? config.lectureDurationMinutes : 60}" min="1">
+                                </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Snapshots</label>
+                                    <input type="number" class="form-control" name="snapshotsPerLecture"
+                                        th:value="${config != null ? config.snapshotsPerLecture : 4}" min="1">
                                 </div>
                             </div>
                             <div class="row mt-3 align-items-center">

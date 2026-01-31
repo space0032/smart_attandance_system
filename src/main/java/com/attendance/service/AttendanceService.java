@@ -34,6 +34,7 @@ public class AttendanceService {
     private final AttendanceRepository attendanceRepository;
     private final StudentRepository studentRepository;
     private final ClassroomRepository classroomRepository;
+    private final com.attendance.repository.CameraConfigRepository cameraConfigRepository; // Added dependency
     private final FaceRecognitionService faceRecognitionService;
     private final FaceDetector faceDetector;
 
@@ -99,17 +100,16 @@ public class AttendanceService {
             if (matchIndex >= 0) {
                 Student recognizedStudent = studentsWithFaces.get(matchIndex);
 
-                // Check if attendance already marked
-                if (!isAttendanceMarkedToday(recognizedStudent.getId(), classroom.getId())) {
-                    double confidence = faceRecognitionService.calculateConfidence(
-                            faceEncoding, recognizedStudent.getFaceEncoding());
+                // Always update attendance logic now (remove the !isAttendanceMarkedToday
+                // check)
+                double confidence = faceRecognitionService.calculateConfidence(
+                        faceEncoding, recognizedStudent.getFaceEncoding());
 
-                    Attendance attendance = markAttendance(recognizedStudent, classroom, confidence);
-                    attendanceRecords.add(attendance);
+                Attendance attendance = markAttendance(recognizedStudent, classroom, confidence);
+                attendanceRecords.add(attendance);
 
-                    log.info("Marked attendance for student: {} with confidence: {}",
-                            recognizedStudent.getStudentId(), confidence);
-                }
+                log.info("Marked attendance for student: {} with confidence: {}",
+                        recognizedStudent.getStudentId(), confidence);
             }
         }
 
@@ -129,46 +129,48 @@ public class AttendanceService {
         LocalDate today = LocalDate.now();
         LocalTime now = LocalTime.now();
 
-        // Determine attendance status based on time
-        AttendanceStatus status = determineAttendanceStatus(now, classroom);
+        // Check for existing attendance
+        Attendance attendance = attendanceRepository
+                .findByStudentIdAndClassroomIdAndAttendanceDate(student.getId(), classroom.getId(), today)
+                .orElse(new Attendance());
 
-        Attendance attendance = new Attendance();
-        attendance.setStudent(student);
-        attendance.setClassroom(classroom);
-        attendance.setAttendanceDate(today);
-        attendance.setCheckInTime(now);
-        attendance.setStatus(status);
-        attendance.setConfidenceScore(confidenceScore);
+        if (attendance.getId() == null) {
+            // New record
+            attendance.setStudent(student);
+            attendance.setClassroom(classroom);
+            attendance.setAttendanceDate(today);
+            attendance.setCheckInTime(now); // First seen time
+            attendance.setDetectionCount(0);
+        }
+
+        // Increment detection count
+        int newCount = attendance.getDetectionCount() + 1;
+        attendance.setDetectionCount(newCount);
+        attendance.setConfidenceScore(confidenceScore); // Update with latest confidence
+
+        // Update status based on scoring logic
+        updateAttendanceStatus(attendance, classroom);
 
         Attendance savedAttendance = attendanceRepository.save(attendance);
-        log.info("Attendance marked for student {} in classroom {}",
-                student.getStudentId(), classroom.getCourseCode());
+        log.info("Updated attendance for student {}: count={}, status={}",
+                student.getStudentId(), newCount, attendance.getStatus());
 
         return savedAttendance;
     }
 
-    /**
-     * Determine attendance status based on check-in time
-     * 
-     * @param checkInTime Check-in time
-     * @param classroom   Classroom entity
-     * @return Attendance status
-     */
-    private AttendanceStatus determineAttendanceStatus(LocalTime checkInTime, Classroom classroom) {
-        LocalTime startTime = classroom.getStartTime();
+    private void updateAttendanceStatus(Attendance attendance, Classroom classroom) {
+        var configOp = cameraConfigRepository.findByClassroomId(classroom.getId());
+        int totalSnapshots = configOp.map(com.attendance.model.CameraConfig::getSnapshotsPerLecture).orElse(4);
 
-        if (startTime == null) {
-            return AttendanceStatus.PRESENT;
+        double percentage = (double) attendance.getDetectionCount() / totalSnapshots;
+
+        if (percentage >= 0.75) {
+            attendance.setStatus(AttendanceStatus.PRESENT);
+        } else if (percentage >= 0.50) {
+            attendance.setStatus(AttendanceStatus.LATE);
+        } else {
+            attendance.setStatus(AttendanceStatus.ABSENT); // Or generic "PROCESSING" status if desired
         }
-
-        // Late if more than 15 minutes after start time
-        LocalTime lateThreshold = startTime.plusMinutes(15);
-
-        if (checkInTime.isAfter(lateThreshold)) {
-            return AttendanceStatus.LATE;
-        }
-
-        return AttendanceStatus.PRESENT;
     }
 
     /**

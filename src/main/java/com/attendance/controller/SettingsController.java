@@ -44,7 +44,8 @@ public class SettingsController {
             @RequestParam String rtspUrl,
             @RequestParam(required = false) String username,
             @RequestParam(required = false) String password,
-            @RequestParam(defaultValue = "5") int captureIntervalSeconds,
+            @RequestParam(defaultValue = "60") int lectureDurationMinutes,
+            @RequestParam(defaultValue = "4") int snapshotsPerLecture,
             @RequestParam(defaultValue = "false") boolean active,
             RedirectAttributes redirectAttributes) {
         try {
@@ -58,7 +59,8 @@ public class SettingsController {
             config.setRtspUrl(rtspUrl);
             config.setUsername(username);
             config.setPassword(password);
-            config.setCaptureIntervalSeconds(captureIntervalSeconds);
+            config.setLectureDurationMinutes(lectureDurationMinutes);
+            config.setSnapshotsPerLecture(snapshotsPerLecture);
             config.setActive(active);
 
             cameraConfigRepository.save(config);
