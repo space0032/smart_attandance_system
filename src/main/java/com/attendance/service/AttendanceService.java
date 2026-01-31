@@ -40,15 +40,15 @@ public class AttendanceService {
     /**
      * Process camera feed image and mark attendance for recognized students
      * 
-     * @param imageFile Camera image file
+     * @param imageFile   Camera image file
      * @param classroomId Classroom ID
      * @return List of attendance records created
      * @throws IOException if image processing fails
      */
     @Transactional
-    public List<Attendance> processCameraFeed(MultipartFile imageFile, Long classroomId) 
+    public List<Attendance> processCameraFeed(MultipartFile imageFile, Long classroomId)
             throws IOException {
-        
+
         Classroom classroom = classroomRepository.findById(classroomId)
                 .orElseThrow(() -> new IllegalArgumentException("Classroom not found with id: " + classroomId));
 
@@ -60,6 +60,18 @@ public class AttendanceService {
             throw new IllegalArgumentException("Invalid image data");
         }
 
+        return processFaceProcessing(image, classroom);
+    }
+
+    /**
+     * Process OpenCV Mat image for face recognition and attendance
+     * 
+     * @param image     OpenCV Mat image
+     * @param classroom Classroom entity
+     * @return List of attendance records
+     */
+    @Transactional
+    public List<Attendance> processFaceProcessing(Mat image, Classroom classroom) {
         // Detect faces in image
         List<Rect> faces = faceRecognitionService.detectFaces(image);
         log.info("Detected {} face(s) in camera feed", faces.size());
@@ -86,16 +98,16 @@ public class AttendanceService {
 
             if (matchIndex >= 0) {
                 Student recognizedStudent = studentsWithFaces.get(matchIndex);
-                
+
                 // Check if attendance already marked
-                if (!isAttendanceMarkedToday(recognizedStudent.getId(), classroomId)) {
+                if (!isAttendanceMarkedToday(recognizedStudent.getId(), classroom.getId())) {
                     double confidence = faceRecognitionService.calculateConfidence(
                             faceEncoding, recognizedStudent.getFaceEncoding());
-                    
+
                     Attendance attendance = markAttendance(recognizedStudent, classroom, confidence);
                     attendanceRecords.add(attendance);
-                    
-                    log.info("Marked attendance for student: {} with confidence: {}", 
+
+                    log.info("Marked attendance for student: {} with confidence: {}",
                             recognizedStudent.getStudentId(), confidence);
                 }
             }
@@ -107,8 +119,8 @@ public class AttendanceService {
     /**
      * Mark attendance for a student
      * 
-     * @param student Student entity
-     * @param classroom Classroom entity
+     * @param student         Student entity
+     * @param classroom       Classroom entity
      * @param confidenceScore Face recognition confidence score
      * @return Created attendance record
      */
@@ -129,9 +141,9 @@ public class AttendanceService {
         attendance.setConfidenceScore(confidenceScore);
 
         Attendance savedAttendance = attendanceRepository.save(attendance);
-        log.info("Attendance marked for student {} in classroom {}", 
+        log.info("Attendance marked for student {} in classroom {}",
                 student.getStudentId(), classroom.getCourseCode());
-        
+
         return savedAttendance;
     }
 
@@ -139,30 +151,30 @@ public class AttendanceService {
      * Determine attendance status based on check-in time
      * 
      * @param checkInTime Check-in time
-     * @param classroom Classroom entity
+     * @param classroom   Classroom entity
      * @return Attendance status
      */
     private AttendanceStatus determineAttendanceStatus(LocalTime checkInTime, Classroom classroom) {
         LocalTime startTime = classroom.getStartTime();
-        
+
         if (startTime == null) {
             return AttendanceStatus.PRESENT;
         }
 
         // Late if more than 15 minutes after start time
         LocalTime lateThreshold = startTime.plusMinutes(15);
-        
+
         if (checkInTime.isAfter(lateThreshold)) {
             return AttendanceStatus.LATE;
         }
-        
+
         return AttendanceStatus.PRESENT;
     }
 
     /**
      * Check if attendance is already marked for today
      * 
-     * @param studentId Student ID
+     * @param studentId   Student ID
      * @param classroomId Classroom ID
      * @return true if already marked, false otherwise
      */
@@ -171,14 +183,14 @@ public class AttendanceService {
         LocalDate today = LocalDate.now();
         Optional<Attendance> existing = attendanceRepository
                 .findByStudentIdAndClassroomIdAndAttendanceDate(studentId, classroomId, today);
-        
+
         return existing.isPresent();
     }
 
     /**
      * Get attendance records by date and classroom
      * 
-     * @param date Attendance date
+     * @param date        Attendance date
      * @param classroomId Classroom ID
      * @return List of attendance records
      */
@@ -208,7 +220,7 @@ public class AttendanceService {
     public AttendanceStats getAttendanceStats(LocalDate date) {
         long totalAttendance = attendanceRepository.countByDate(date);
         long presentCount = attendanceRepository.countPresentByDate(date);
-        
+
         return new AttendanceStats(totalAttendance, presentCount);
     }
 

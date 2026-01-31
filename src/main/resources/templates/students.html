@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,16 +8,23 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
-        body { background: #f8f9fa; }
-        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        body {
+            background: #f8f9fa;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
         .content-card {
             background: white;
             border-radius: 15px;
             padding: 30px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark mb-4">
@@ -37,6 +45,9 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/attendance">Attendance</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/settings">Settings</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/register">Register</a>
@@ -87,12 +98,12 @@
                             <td th:text="${student.department}">Computer Science</td>
                             <td th:text="${#temporals.format(student.createdAt, 'yyyy-MM-dd')}">2024-01-01</td>
                             <td>
-                                <button class="btn btn-sm btn-outline-primary" 
-                                        th:onclick="'viewStudent(' + ${student.id} + ')'">
+                                <button class="btn btn-sm btn-outline-primary"
+                                    th:onclick="'viewStudent(' + ${student.id} + ')'">
                                     <i class="fas fa-eye"></i>
                                 </button>
                                 <button class="btn btn-sm btn-outline-danger"
-                                        th:onclick="'deleteStudent(' + ${student.id} + ')'">
+                                    th:onclick="'deleteStudent(' + ${student.id} + ')'">
                                     <i class="fas fa-trash"></i>
                                 </button>
                             </td>
@@ -106,10 +117,10 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         // Search functionality
-        document.getElementById('searchInput').addEventListener('keyup', function() {
+        document.getElementById('searchInput').addEventListener('keyup', function () {
             const searchValue = this.value.toLowerCase();
             const rows = document.querySelectorAll('#studentsTable tr');
-            
+
             rows.forEach(row => {
                 const text = row.textContent.toLowerCase();
                 row.style.display = text.includes(searchValue) ? '' : 'none';
@@ -125,21 +136,22 @@
                 fetch('/api/students/' + id, {
                     method: 'DELETE'
                 })
-                .then(response => response.json())
-                .then(data => {
-                    if (data.success) {
-                        alert('Student deleted successfully');
-                        location.reload();
-                    } else {
-                        alert('Error: ' + data.message);
-                    }
-                })
-                .catch(error => {
-                    alert('Error deleting student');
-                    console.error(error);
-                });
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            alert('Student deleted successfully');
+                            location.reload();
+                        } else {
+                            alert('Error: ' + data.message);
+                        }
+                    })
+                    .catch(error => {
+                        alert('Error deleting student');
+                        console.error(error);
+                    });
             }
         }
     </script>
 </body>
+
 </html>
