@@ -74,11 +74,11 @@ public class StudentService {
             }
 
             // Extract face and generate encoding
-            Mat faceImage = faceDetector.extractFace(image, faces.get(0));
-            faceEncoding = faceRecognitionService.extractFaceEncoding(faceImage);
+            Mat extractedFace = faceDetector.extractFace(image, faces.get(0));
+            faceEncoding = faceRecognitionService.extractFaceEncoding(extractedFace);
 
             // Save face image
-            faceImagePath = saveFaceImage(faceImage, studentDTO.getStudentId());
+            faceImagePath = saveFaceImage(extractedFace, studentDTO.getStudentId());
         }
 
         // Create student entity
