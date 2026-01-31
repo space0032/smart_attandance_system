@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Smart Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { background: #f8f9fa; }
+        .navbar { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); }
+        .stat-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            margin-bottom: 20px;
+        }
+        .stat-icon {
+            font-size: 3rem;
+            opacity: 0.3;
+        }
+        .stat-value {
+            font-size: 2.5rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-camera me-2"></i>Smart Attendance
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item">
+                        <a class="nav-link active" href="/dashboard">Dashboard</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/students">Students</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/attendance">Attendance</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/register">Register</a>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <h1 class="mb-4">Dashboard</h1>
+        
+        <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+        <!-- Statistics Cards -->
+        <div class="row">
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-users stat-icon text-primary"></i>
+                    <div class="stat-value text-primary" th:text="${totalAttendance} ?: '0'">0</div>
+                    <div class="text-muted">Total Attendance Today</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-check-circle stat-icon text-success"></i>
+                    <div class="stat-value text-success" th:text="${presentCount} ?: '0'">0</div>
+                    <div class="text-muted">Present Students</div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="stat-card text-center">
+                    <i class="fas fa-percentage stat-icon text-info"></i>
+                    <div class="stat-value text-info" th:text="${attendanceRate} ?: '0%'">0%</div>
+                    <div class="text-muted">Attendance Rate</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Date Information -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="stat-card">
+                    <h5><i class="fas fa-calendar-day me-2"></i>Current Date</h5>
+                    <p class="mb-0" th:text="${currentDate} ?: 'N/A'">N/A</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="row mt-4">
+            <div class="col-12">
+                <div class="stat-card">
+                    <h5 class="mb-3"><i class="fas fa-bolt me-2"></i>Quick Actions</h5>
+                    <div class="d-grid gap-2 d-md-flex">
+                        <a href="/attendance" class="btn btn-primary">
+                            <i class="fas fa-list me-2"></i>View Attendance
+                        </a>
+                        <a href="/students" class="btn btn-secondary">
+                            <i class="fas fa-users me-2"></i>Manage Students
+                        </a>
+                        <a href="/register" class="btn btn-success">
+                            <i class="fas fa-user-plus me-2"></i>Register New Student
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
