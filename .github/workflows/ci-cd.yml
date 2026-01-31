@@ -20,6 +20,10 @@ jobs:
   build-test-java:
     name: Build & Test Java Application
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      checks: write
+      pull-requests: write
     
     steps:
       - name: Checkout code
@@ -56,15 +60,20 @@ jobs:
           path: target/*.jar
           retention-days: 7
       
-      - name: Generate test report
+      - name: Check for test results
+        id: test-results
         if: always()
         run: |
-          if [ -d "target/surefire-reports" ]; then
-            echo "Test reports generated"
+          if [ -d "target/surefire-reports" ] && [ -n "$(ls -A target/surefire-reports/*.xml 2>/dev/null)" ]; then
+            echo "has_tests=true" >> $GITHUB_OUTPUT
+            echo "Test reports found"
+          else
+            echo "has_tests=false" >> $GITHUB_OUTPUT
+            echo "No test reports found"
           fi
       
       - name: Publish test results
-        if: always()
+        if: always() && steps.test-results.outputs.has_tests == 'true'
         uses: EnricoMi/publish-unit-test-result-action@v2
         with:
           files: |
