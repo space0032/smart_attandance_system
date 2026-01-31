@@ -18,3 +18,10 @@ INSERT INTO students (id, student_id, first_name, last_name, email, department, 
 -- Reset keys to prevent collisions (Dynamic Reset)
 ALTER TABLE classrooms ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM classrooms);
 ALTER TABLE students ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM students);
+
+-- Insert default admin user
+-- Username: admin, Password: password
+INSERT INTO users (username, password, role) VALUES ('admin', '$2a$10$zCbLmRKFF4EQlwvQgi/iceecs3d9QsFQdHmm1rXo8/hKjV6SBtIabe', 'ADMIN');
+
+-- Helper user as requested (id/password)
+INSERT INTO users (username, password, role) VALUES ('id', '$2a$10$zCbLmRKFF4EQlwvQgi/iceecs3d9QsFQdHmm1rXo8/hKjV6SBtIabe', 'ADMIN');

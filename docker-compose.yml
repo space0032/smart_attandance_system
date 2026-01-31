@@ -1,0 +1,24 @@
+version: '3.8'
+
+services:
+  python-ai:
+    build: ./python_service
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./python_service:/app
+    environment:
+      - PYTHONUNBUFFERED=1
+
+  java-backend:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - DB_URL=jdbc:h2:file:/app/data/attendancedb
+    volumes:
+      - ./uploads:/app/uploads
+      - ./data:/app/data
+    depends_on:
+      - python-ai

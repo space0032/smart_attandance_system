@@ -37,6 +37,7 @@ public class AttendanceService {
     private final com.attendance.repository.CameraConfigRepository cameraConfigRepository; // Added dependency
     private final FaceRecognitionService faceRecognitionService;
     private final FaceDetector faceDetector;
+    private final org.springframework.messaging.simp.SimpMessagingTemplate messagingTemplate;
 
     /**
      * Process camera feed image and mark attendance for recognized students
@@ -155,6 +156,17 @@ public class AttendanceService {
         Attendance savedAttendance = attendanceRepository.save(attendance);
         log.info("Updated attendance for student {}: count={}, status={}",
                 student.getStudentId(), newCount, attendance.getStatus());
+
+        // Publish real-time update
+        try {
+            messagingTemplate.convertAndSend("/topic/attendance/" + classroom.getId(), savedAttendance);
+
+            // Also publish global stats update
+            AttendanceStats stats = getAttendanceStats(today);
+            messagingTemplate.convertAndSend("/topic/stats", stats);
+        } catch (Exception e) {
+            log.error("Failed to send real-time update", e);
+        }
 
         return savedAttendance;
     }

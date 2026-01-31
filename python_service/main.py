@@ -1,0 +1,77 @@
+from fastapi import FastAPI, File, UploadFile, HTTPException
+import face_recognition
+import numpy as np
+import cv2
+import uvicorn
+from typing import List
+from pydantic import BaseModel
+
+app = FastAPI()
+
+# Store known face encodings and student IDs
+known_face_encodings = []
+known_face_ids = []
+
+class RegisterRequest(BaseModel):
+    student_id: str
+    encoding: List[float]
+
+@app.post("/register")
+async def register_face(request: RegisterRequest):
+    known_face_encodings.append(np.array(request.encoding))
+    known_face_ids.append(request.student_id)
+    return {"message": "Face registered successfully"}
+
+@app.post("/recognize")
+async def recognize_face(file: UploadFile = File(...)):
+    # Read image file
+    contents = await file.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    
+    # Convert to RGB (face_recognition uses RGB)
+    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    # Detect faces
+    face_locations = face_recognition.face_locations(rgb_img)
+    face_encodings = face_recognition.face_encodings(rgb_img, face_locations)
+    
+    results = []
+    
+    for encoding in face_encodings:
+        # Check if we have any known faces
+        if not known_face_encodings:
+            results.append({"student_id": "UNKNOWN", "confidence": 0.0})
+            continue
+            
+        # Compare with known faces
+        matches = face_recognition.compare_faces(known_face_encodings, encoding, tolerance=0.6)
+        face_distances = face_recognition.face_distance(known_face_encodings, encoding)
+        
+        best_match_index = np.argmin(face_distances)
+        
+        if matches[best_match_index]:
+            student_id = known_face_ids[best_match_index]
+            confidence = 1.0 - face_distances[best_match_index]
+            results.append({"student_id": student_id, "confidence": confidence})
+        else:
+            results.append({"student_id": "UNKNOWN", "confidence": 0.0})
+            
+    return {"matches": results}
+
+@app.post("/encode")
+async def encode_face(file: UploadFile = File(...)):
+    contents = await file.read()
+    nparr = np.frombuffer(contents, np.uint8)
+    img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+    rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    
+    encodings = face_recognition.face_encodings(rgb_img)
+    
+    if len(encodings) > 0:
+        return {"encoding": encodings[0].tolist(), "found": True}
+    else:
+        return {"found": False}
+
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=5000)

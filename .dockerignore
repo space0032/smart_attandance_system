@@ -1,0 +1,13 @@
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!target/smart-attendance-system-*.jar
+*.class
+.idea/
+*.iml
+.git/
+.gitignore
+uploads/
+data/
+*.db
+python_service/__pycache__/
+python_service/.venv/
