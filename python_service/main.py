@@ -1,4 +1,5 @@
 from fastapi import FastAPI, File, UploadFile, HTTPException
+from fastapi.responses import RedirectResponse
 import face_recognition
 import numpy as np
 import cv2
@@ -6,11 +7,30 @@ import uvicorn
 from typing import List
 from pydantic import BaseModel
 
-app = FastAPI()
+app = FastAPI(
+    title="Smart Attendance Face Recognition API",
+    description="Face recognition service for smart attendance system",
+    version="1.0.0"
+)
 
 # Store known face encodings and student IDs
 known_face_encodings = []
 known_face_ids = []
+
+@app.get("/")
+async def root():
+    """Root endpoint - redirects to API documentation"""
+    return RedirectResponse(url="/docs")
+
+@app.get("/health")
+async def health_check():
+    """Health check endpoint"""
+    return {
+        "status": "healthy",
+        "service": "Face Recognition API",
+        "registered_faces": len(known_face_encodings),
+        "version": "1.0.0"
+    }
 
 class RegisterRequest(BaseModel):
     student_id: str
