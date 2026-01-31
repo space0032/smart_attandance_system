@@ -1,13 +1,42 @@
+# Maven
 target/
 !.mvn/wrapper/maven-wrapper.jar
 !target/smart-attendance-system-*.jar
 *.class
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+
+# Python
+python_service/__pycache__/
+python_service/.venv/
+python_service/*.pyc
+python_service/.pytest_cache/
+
+# IDE
 .idea/
 *.iml
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Git & CI
 .git/
 .gitignore
+.github/
+
+# Data and Uploads
 uploads/
 data/
 *.db
-python_service/__pycache__/
-python_service/.venv/
+*.sql
+
+# Logs
+logs/
+*.log
+
+# Documentation
+README.md
+LICENSE
+

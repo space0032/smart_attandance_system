@@ -31,6 +31,7 @@ public class SecurityConfig {
                                                 .requestMatchers("/css/**", "/js/**", "/uploads/**").permitAll()
                                                 .requestMatchers("/", "/login", "/register").permitAll()
                                                 .requestMatchers("/settings/**").hasRole("ADMIN")
+                                                .requestMatchers("/admin/**").hasRole("ADMIN")
                                                 .anyRequest().authenticated())
                                 .csrf(csrf -> csrf
                                                 .ignoringRequestMatchers("/api/**") // Disable CSRF for API endpoints

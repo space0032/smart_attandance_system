@@ -2,23 +2,61 @@ version: '3.8'
 
 services:
   python-ai:
-    build: ./python_service
+    build:
+      context: ./python_service
+      dockerfile: Dockerfile
+      # Use BuildKit cache for faster builds
+      cache_from:
+        - smart-attendance-python-ai:latest
+    image: smart-attendance-python-ai:latest
+    container_name: smart-attendance-python-ai
     ports:
       - "5000:5000"
-    volumes:
-      - ./python_service:/app
     environment:
       - PYTHONUNBUFFERED=1
+    # Remove volume mount for production (faster I/O)
+    # Uncomment below for development with hot-reload
+    # volumes:
+    #   - ./python_service:/app
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
 
   java-backend:
-    build: .
+    build:
+      context: .
+      dockerfile: Dockerfile
+      # Use BuildKit cache for faster builds
+      cache_from:
+        - smart-attendance-java-backend:latest
+    image: smart-attendance-java-backend:latest
+    container_name: smart-attendance-java-backend
     ports:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
       - DB_URL=jdbc:h2:file:/app/data/attendancedb
+      # JVM memory optimization
+      - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom
     volumes:
       - ./uploads:/app/uploads
       - ./data:/app/data
     depends_on:
-      - python-ai
+      python-ai:
+        condition: service_healthy
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+# Named volumes for better performance (optional)
+# volumes:
+#   uploads:
+#   data:
