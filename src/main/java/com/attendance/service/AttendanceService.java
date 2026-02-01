@@ -247,4 +247,17 @@ public class AttendanceService {
             return total > 0 ? (double) present / total * 100 : 0.0;
         }
     }
+
+    /**
+     * Get attendance statistics for a specific student
+     * 
+     * @param studentId Student ID
+     * @return Statistics object
+     */
+    @Transactional(readOnly = true)
+    public AttendanceStats getStudentStats(Long studentId) {
+        long total = attendanceRepository.countByStudentId(studentId);
+        long present = attendanceRepository.countPresentByStudentId(studentId);
+        return new AttendanceStats(total, present);
+    }
 }

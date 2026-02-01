@@ -138,4 +138,29 @@ public class StudentController {
                                         .body(ApiResponse.error("Failed to delete student"));
                 }
         }
+
+        /**
+         * Update student photo
+         * 
+         * @param id    Student ID
+         * @param photo New photo file
+         * @return API response with updated student
+         */
+        @PostMapping("/{id}/photo")
+        public ResponseEntity<ApiResponse<Student>> updateStudentPhoto(
+                        @PathVariable Long id,
+                        @RequestParam("photo") MultipartFile photo) {
+                try {
+                        Student student = studentService.updateStudentPhoto(id, photo);
+                        return ResponseEntity.ok(ApiResponse.success("Student photo updated successfully", student));
+                } catch (IllegalArgumentException e) {
+                        log.error("Validation error during photo update", e);
+                        return ResponseEntity.badRequest()
+                                        .body(ApiResponse.error(e.getMessage()));
+                } catch (Exception e) {
+                        log.error("Error updating student photo", e);
+                        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                                        .body(ApiResponse.error("Failed to update student photo: " + e.getMessage()));
+                }
+        }
 }

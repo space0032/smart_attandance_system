@@ -15,17 +15,23 @@ import java.util.Optional;
  */
 @Repository
 public interface AttendanceRepository extends JpaRepository<Attendance, Long> {
-    
+
     List<Attendance> findByAttendanceDateAndClassroomId(LocalDate date, Long classroomId);
-    
+
     List<Attendance> findByStudentIdAndAttendanceDate(Long studentId, LocalDate date);
-    
+
     Optional<Attendance> findByStudentIdAndClassroomIdAndAttendanceDate(
             Long studentId, Long classroomId, LocalDate date);
-    
+
     @Query("SELECT COUNT(a) FROM Attendance a WHERE a.attendanceDate = :date")
     long countByDate(@Param("date") LocalDate date);
-    
+
     @Query("SELECT COUNT(a) FROM Attendance a WHERE a.attendanceDate = :date AND a.status = 'PRESENT'")
     long countPresentByDate(@Param("date") LocalDate date);
+
+    @Query("SELECT COUNT(a) FROM Attendance a WHERE a.student.id = :studentId")
+    long countByStudentId(@Param("studentId") Long studentId);
+
+    @Query("SELECT COUNT(a) FROM Attendance a WHERE a.student.id = :studentId AND a.status = 'PRESENT'")
+    long countPresentByStudentId(@Param("studentId") Long studentId);
 }

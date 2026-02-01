@@ -191,6 +191,69 @@ public class StudentService {
     }
 
     /**
+     * Update student photo
+     * 
+     * @param id    Student ID
+     * @param photo New photo file
+     * @return Updated student
+     * @throws IOException if file operations fail
+     */
+    @Transactional
+    public Student updateStudentPhoto(Long id, MultipartFile photo) throws IOException {
+        Student student = getStudentById(id);
+
+        if (photo == null || photo.isEmpty()) {
+            throw new IllegalArgumentException("Photo is required");
+        }
+
+        // Detect face in new image
+        Mat image = faceDetector.byteArrayToMat(photo.getBytes());
+        List<Rect> faces = faceRecognitionService.detectFaces(image);
+
+        if (faces.isEmpty()) {
+            throw new IllegalArgumentException("No face detected in the image");
+        }
+
+        if (faces.size() > 1) {
+            log.warn("Multiple faces detected, using the first one");
+        }
+
+        // Extract face and generate encoding
+        Mat extractedFace = faceDetector.extractFace(image, faces.get(0));
+        byte[] faceEncoding = faceRecognitionService.extractFaceEncoding(extractedFace);
+
+        // Delete old image if exists
+        if (student.getFaceImagePath() != null) {
+            try {
+                Files.deleteIfExists(Paths.get(student.getFaceImagePath()));
+            } catch (IOException e) {
+                log.warn("Could not delete old photo: {}", e.getMessage());
+            }
+        }
+
+        // Save new image
+        String faceImagePath = saveFaceImage(extractedFace, student.getStudentId());
+
+        // Fix path to be relative if saveFaceImage returns absolute or different format
+        // saveFaceImage returns absolute path string currently? Let's check
+        // saveFaceImage impl.
+        // It returns filePath.toString().
+        // We only want the filename stored in DB usually if we prepend upload dir.
+        // Checking saveFaceImage: it returns full path.
+        // But the DB seems to expect filename usually?
+        // Existing register code: student.setFaceImagePath(faceImagePath);
+        // And template uses: th:src="@{'/uploads/faces/' + ${student.faceImagePath}}"
+        // If faceImagePath is absolute 'uploads/faces/filename.jpg', then template
+        // becomes '/uploads/faces/uploads/faces/filename.jpg'.
+        // Wait, let's check registerStudentWithFace.
+
+        student.setFaceEncoding(faceEncoding);
+        student.setFaceImagePath(faceImagePath); // Store full relative path (uploads/faces/filename.jpg)
+
+        return studentRepository.save(student);
+    }
+
+    /**
      * Delete student
      * 
      * @param id Student ID
