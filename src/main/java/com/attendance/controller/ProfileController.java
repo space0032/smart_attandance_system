@@ -2,6 +2,7 @@ package com.attendance.controller;
 
 import com.attendance.model.User;
 import com.attendance.repository.UserRepository;
+import com.attendance.util.InputValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.Authentication;
@@ -22,6 +23,7 @@ public class ProfileController {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final InputValidationService inputValidationService;
 
     /**
      * Display user profile page
@@ -64,9 +66,11 @@ public class ProfileController {
                 return "redirect:/profile";
             }
 
-            // Validate new password
-            if (newPassword.length() < 6) {
-                redirectAttributes.addFlashAttribute("errorMessage", "Password must be at least 6 characters");
+            // Validate new password using the validation-sanitizer library
+            try {
+                inputValidationService.validatePassword(newPassword);
+            } catch (IllegalArgumentException e) {
+                redirectAttributes.addFlashAttribute("errorMessage", e.getMessage());
                 return "redirect:/profile";
             }
 

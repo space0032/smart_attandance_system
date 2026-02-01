@@ -113,7 +113,7 @@
         <dependency>
             <groupId>io.github.space0032</groupId>
             <artifactId>java-validation-sanitizer</artifactId>
-            <version>1.0.0</version>
+            <version>1.1.1</version>
         </dependency>
     </dependencies>
     

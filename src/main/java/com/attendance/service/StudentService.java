@@ -4,6 +4,7 @@ import com.attendance.dto.StudentDTO;
 import com.attendance.model.Student;
 import com.attendance.repository.StudentRepository;
 import com.attendance.util.FaceDetector;
+import com.attendance.util.InputValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.opencv.core.Mat;
@@ -31,6 +32,7 @@ public class StudentService {
     private final StudentRepository studentRepository;
     private final FaceRecognitionService faceRecognitionService;
     private final FaceDetector faceDetector;
+    private final InputValidationService inputValidationService;
 
     private static final String UPLOAD_DIR = "uploads/faces/";
 
@@ -38,20 +40,23 @@ public class StudentService {
      * Register a new student with face image
      * 
      * @param studentDTO Student data
-     * @param faceImage Face image file
+     * @param faceImage  Face image file
      * @return Registered student
-     * @throws IOException if file operations fail
+     * @throws IOException              if file operations fail
      * @throws IllegalArgumentException if validation fails
      */
     @Transactional
-    public Student registerStudentWithFace(StudentDTO studentDTO, MultipartFile faceImage) 
+    public Student registerStudentWithFace(StudentDTO studentDTO, MultipartFile faceImage)
             throws IOException {
-        
-        // Validate student data
+
+        // Validate and sanitize student data using the validation-sanitizer library
+        inputValidationService.validateAndSanitizeStudent(studentDTO);
+
+        // Check for duplicate student ID
         if (studentRepository.existsByStudentId(studentDTO.getStudentId())) {
             throw new IllegalArgumentException("Student ID already exists");
         }
-        
+
         if (studentRepository.existsByEmail(studentDTO.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
@@ -93,7 +98,7 @@ public class StudentService {
 
         Student savedStudent = studentRepository.save(student);
         log.info("Registered student: {}", savedStudent.getStudentId());
-        
+
         return savedStudent;
     }
 
@@ -149,24 +154,27 @@ public class StudentService {
     /**
      * Update student information
      * 
-     * @param id Student ID
+     * @param id         Student ID
      * @param studentDTO Updated student data
      * @return Updated student
      * @throws IllegalArgumentException if student not found or validation fails
      */
     @Transactional
     public Student updateStudent(Long id, StudentDTO studentDTO) {
+        // Validate and sanitize student data using the validation-sanitizer library
+        inputValidationService.validateAndSanitizeStudent(studentDTO);
+
         Student student = getStudentById(id);
 
         // Check if studentId is being changed and if it's unique
         if (!student.getStudentId().equals(studentDTO.getStudentId()) &&
-            studentRepository.existsByStudentId(studentDTO.getStudentId())) {
+                studentRepository.existsByStudentId(studentDTO.getStudentId())) {
             throw new IllegalArgumentException("Student ID already exists");
         }
 
         // Check if email is being changed and if it's unique
         if (!student.getEmail().equals(studentDTO.getEmail()) &&
-            studentRepository.existsByEmail(studentDTO.getEmail())) {
+                studentRepository.existsByEmail(studentDTO.getEmail())) {
             throw new IllegalArgumentException("Email already exists");
         }
 
@@ -178,7 +186,7 @@ public class StudentService {
 
         Student updatedStudent = studentRepository.save(student);
         log.info("Updated student: {}", updatedStudent.getStudentId());
-        
+
         return updatedStudent;
     }
 
@@ -190,7 +198,7 @@ public class StudentService {
     @Transactional
     public void deleteStudent(Long id) {
         Student student = getStudentById(id);
-        
+
         // Delete face image file if exists
         if (student.getFaceImagePath() != null) {
             try {

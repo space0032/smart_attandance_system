@@ -2,6 +2,7 @@ package com.attendance.service;
 
 import com.attendance.model.User;
 import com.attendance.repository.UserRepository;
+import com.attendance.util.InputValidationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.password.PasswordEncoder;
@@ -20,19 +21,24 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final InputValidationService inputValidationService;
 
     /**
      * Create a new user with encrypted password
      */
     @Transactional
     public User createUser(String username, String password, User.Role role) {
+        // Validate and sanitize username using the validation-sanitizer library
+        String sanitizedUsername = inputValidationService.validateAndSanitizeUsername(username);
+        inputValidationService.validatePassword(password);
+
         // Check if username already exists
-        if (userRepository.findByUsername(username).isPresent()) {
+        if (userRepository.findByUsername(sanitizedUsername).isPresent()) {
             throw new IllegalArgumentException("Username already exists");
         }
 
         User user = new User();
-        user.setUsername(username);
+        user.setUsername(sanitizedUsername);
         user.setPassword(passwordEncoder.encode(password));
         user.setRole(role);
 
