@@ -7,6 +7,8 @@
     <title>Attendance - Smart Attendance System</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <!-- Vue.js 3 CDN -->
+    <script src="https://unpkg.com/vue@3/dist/vue.global.js"></script>
     <style>
         body {
             background: #f8f9fa;
@@ -21,6 +23,10 @@
             border-radius: 15px;
             padding: 30px;
             box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        [v-cloak] {
+            display: none;
         }
     </style>
 </head>
@@ -86,11 +92,16 @@
     </nav>
 
     <!-- Main Content -->
-    <div class="container">
+    <div id="app" class="container" v-cloak>
         <div class="content-card mb-4">
             <h1 class="mb-4"><i class="fas fa-clipboard-check me-2"></i>Attendance Management</h1>
 
-            <div id="alertContainer"></div>
+            <!-- Alert Component -->
+            <div v-if="alert.message" :class="['alert', 'alert-' + alert.type, 'alert-dismissible', 'fade', 'show']"
+                role="alert">
+                {{ alert.message }}
+                <button type="button" class="btn-close" @click="alert.message = ''"></button>
+            </div>
 
             <!-- Camera Feed Processing -->
             <div class="row mb-4">
@@ -98,11 +109,11 @@
                     <h5>Process Camera Feed</h5>
                     <p class="text-muted">Upload an image from CCTV camera to mark attendance automatically</p>
 
-                    <form id="cameraFeedForm" enctype="multipart/form-data">
+                    <form @submit.prevent="processCameraFeed">
                         <div class="row">
                             <div class="col-md-4 mb-3">
                                 <label for="classroomId" class="form-label">Classroom</label>
-                                <select class="form-select" id="classroomId" name="classroomId" required>
+                                <select class="form-select" v-model="form.classroomId" required>
                                     <option value="">Select Classroom</option>
                                     <option value="1">A101 - CS101</option>
                                     <option value="2">B205 - CS201</option>
@@ -111,12 +122,14 @@
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label for="cameraImage" class="form-label">Camera Image</label>
-                                <input type="file" class="form-control" id="cameraImage" accept="image/*" required>
+                                <input type="file" class="form-control" ref="cameraImageInput" accept="image/*"
+                                    required>
                             </div>
                             <div class="col-md-4 mb-3">
                                 <label class="form-label d-block">&nbsp;</label>
-                                <button type="submit" class="btn btn-primary w-100">
-                                    <i class="fas fa-camera me-2"></i>Process & Mark Attendance
+                                <button type="submit" class="btn btn-primary w-100" :disabled="loading">
+                                    <i class="fas" :class="loading ? 'fa-spinner fa-spin' : 'fa-camera'"></i>
+                                    {{ loading ? 'Processing...' : 'Process & Mark Attendance' }}
                                 </button>
                             </div>
                         </div>
@@ -132,7 +145,7 @@
             <div class="row mb-3">
                 <div class="col-md-3">
                     <label for="viewClassroom" class="form-label">Classroom</label>
-                    <select class="form-select" id="viewClassroom">
+                    <select class="form-select" v-model="filters.classroomId">
                         <option value="">Select Classroom</option>
                         <option value="1">A101 - CS101</option>
                         <option value="2">B205 - CS201</option>
@@ -141,17 +154,19 @@
                 </div>
                 <div class="col-md-3">
                     <label for="viewDate" class="form-label">Date</label>
-                    <input type="date" class="form-control" id="viewDate">
+                    <input type="date" class="form-control" v-model="filters.date">
                 </div>
                 <div class="col-md-3">
                     <label class="form-label d-block">&nbsp;</label>
-                    <button type="button" class="btn btn-secondary" id="loadAttendance">
-                        <i class="fas fa-search me-2"></i>Load Attendance
+                    <button type="button" class="btn btn-secondary" @click="loadAttendance" :disabled="loadingList">
+                        <i class="fas" :class="loadingList ? 'fa-spinner fa-spin' : 'fa-search'"></i>
+                        Load Attendance
                     </button>
                 </div>
+                <!-- EXPORT BUTTON -->
                 <div class="col-md-3">
                     <label class="form-label d-block">&nbsp;</label>
-                    <button type="button" class="btn btn-success" id="exportExcel">
+                    <button type="button" class="btn btn-success" @click="exportExcel">
                         <i class="fas fa-file-excel me-2"></i>Export to Excel
                     </button>
                 </div>
@@ -171,11 +186,24 @@
                             <th>Confidence</th>
                         </tr>
                     </thead>
-                    <tbody id="attendanceTable">
-                        <tr>
+                    <tbody>
+                        <tr v-if="attendanceList.length === 0">
                             <td colspan="7" class="text-center text-muted">
-                                Select classroom and date, then click "Load Attendance"
+                                {{ emptyStateMessage }}
                             </td>
+                        </tr>
+                        <tr v-for="record in attendanceList" :key="record.id">
+                            <td>{{ record.student.studentId }}</td>
+                            <td>{{ record.student.fullName }}</td>
+                            <td>{{ record.student.email }}</td>
+                            <td>{{ record.student.department }}</td>
+                            <td>{{ record.checkInTime }}</td>
+                            <td>
+                                <span :class="getStatusBadgeClass(record.status)">
+                                    {{ record.status }}
+                                </span>
+                            </td>
+                            <td>{{ formatConfidence(record.confidenceScore) }}</td>
                         </tr>
                     </tbody>
                 </table>
@@ -184,117 +212,133 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        // Set today's date as default
-        document.getElementById('viewDate').valueAsDate = new Date();
+    <script th:inline="none">
+        const { createApp } = Vue;
 
-        // Process camera feed
-        document.getElementById('cameraFeedForm').addEventListener('submit', async function (e) {
-            e.preventDefault();
-
-            const formData = new FormData();
-            formData.append('image', document.getElementById('cameraImage').files[0]);
-            formData.append('classroomId', document.getElementById('classroomId').value);
-
-            try {
-                const response = await fetch('/api/attendance/process', {
-                    method: 'POST',
-                    body: formData
-                });
-
-                const result = await response.json();
-
-                if (result.success) {
-                    showAlert(`Success! Marked attendance for ${result.data.length} student(s)`, 'success');
-                    document.getElementById('cameraFeedForm').reset();
-                } else {
-                    showAlert('Error: ' + result.message, 'danger');
+        createApp({
+            data() {
+                return {
+                    form: {
+                        classroomId: ''
+                    },
+                    filters: {
+                        classroomId: '',
+                        date: new Date().toISOString().split('T')[0] // Default to today
+                    },
+                    attendanceList: [],
+                    loading: false,
+                    loadingList: false,
+                    hasSearched: false,
+                    alert: {
+                        message: '',
+                        type: 'info'
+                    }
                 }
-            } catch (error) {
-                showAlert('Error processing camera feed: ' + error.message, 'danger');
-            }
-        });
-
-        // Load attendance
-        document.getElementById('loadAttendance').addEventListener('click', async function () {
-            const classroomId = document.getElementById('viewClassroom').value;
-            const date = document.getElementById('viewDate').value;
-
-            if (!classroomId || !date) {
-                showAlert('Please select both classroom and date', 'warning');
-                return;
-            }
-
-            try {
-                const response = await fetch(`/api/attendance/list?classroomId=${classroomId}&date=${date}`);
-                const result = await response.json();
-
-                if (result.success) {
-                    displayAttendance(result.data);
-                } else {
-                    showAlert('Error: ' + result.message, 'danger');
+            },
+            computed: {
+                emptyStateMessage() {
+                    return this.hasSearched
+                        ? 'No attendance records found'
+                        : 'Select classroom and date, then click "Load Attendance"';
                 }
-            } catch (error) {
-                showAlert('Error loading attendance: ' + error.message, 'danger');
-            }
-        });
+            },
+            methods: {
+                showAlert(message, type = 'info') {
+                    this.alert = { message, type };
+                    // Auto dismiss
+                    setTimeout(() => {
+                        this.alert.message = '';
+                    }, 5000);
+                },
 
-        // Export to Excel
-        document.getElementById('exportExcel').addEventListener('click', function () {
-            const classroomId = document.getElementById('viewClassroom').value;
-            const date = document.getElementById('viewDate').value;
+                async processCameraFeed() {
+                    const fileInput = this.$refs.cameraImageInput;
+                    if (!fileInput.files.length) {
+                        this.showAlert('Please select an image', 'warning');
+                        return;
+                    }
+                    if (!this.form.classroomId) {
+                        this.showAlert('Please select a classroom', 'warning');
+                        return;
+                    }
 
-            if (!classroomId || !date) {
-                showAlert('Please select both classroom and date', 'warning');
-                return;
-            }
+                    this.loading = true;
+                    const formData = new FormData();
+                    formData.append('image', fileInput.files[0]);
+                    formData.append('classroomId', this.form.classroomId);
 
-            window.location.href = `/api/attendance/export?classroomId=${classroomId}&date=${date}`;
-        });
+                    try {
+                        const response = await fetch('/api/attendance/process', {
+                            method: 'POST',
+                            body: formData
+                        });
+                        const result = await response.json();
 
-        function displayAttendance(attendanceList) {
-            const tbody = document.getElementById('attendanceTable');
+                        if (result.success) {
+                            this.showAlert(`Success! Marked attendance for ${result.data.length} student(s)`, 'success');
+                            fileInput.value = ''; // Reset file input
+                        } else {
+                            this.showAlert('Error: ' + result.message, 'danger');
+                        }
+                    } catch (error) {
+                        this.showAlert('Error processing camera feed: ' + error.message, 'danger');
+                    } finally {
+                        this.loading = false;
+                    }
+                },
 
-            if (attendanceList.length === 0) {
-                tbody.innerHTML = '<tr><td colspan="7" class="text-center text-muted">No attendance records found</td></tr>';
-                return;
-            }
+                async loadAttendance() {
+                    if (!this.filters.classroomId || !this.filters.date) {
+                        this.showAlert('Please select both classroom and date', 'warning');
+                        return;
+                    }
 
-            tbody.innerHTML = attendanceList.map(record => {
-                const statusClass = record.status === 'PRESENT' ? 'success' : (record.status === 'LATE' ? 'warning' : 'danger');
-                const confidence = record.confidenceScore ? (record.confidenceScore * 100).toFixed(1) + '%' : 'N/A';
+                    this.loadingList = true;
+                    this.hasSearched = true;
+                    this.attendanceList = []; // Clear previous results
 
-                return `
-                    <tr>
-                        <td>${record.student.studentId}</td>
-                        <td>${record.student.fullName}</td>
-                        <td>${record.student.email}</td>
-                        <td>${record.student.department}</td>
-                        <td>${record.checkInTime}</td>
-                        <td><span class="badge bg-${statusClass}">${record.status}</span></td>
-                        <td>${confidence}</td>
-                    </tr>
-                `;
-            }).join('');
-        }
+                    try {
+                        const response = await fetch(`/api/attendance/list?classroomId=${this.filters.classroomId}&date=${this.filters.date}`);
+                        const result = await response.json();
 
-        function showAlert(message, type) {
-            const alertHTML = `
-                <div class="alert alert-${type} alert-dismissible fade show" role="alert">
-                    ${message}
-                    <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                </div>
-            `;
-            document.getElementById('alertContainer').innerHTML = alertHTML;
+                        if (result.success) {
+                            this.attendanceList = result.data;
+                            if (this.attendanceList.length === 0) {
+                                this.showAlert('No records found for this date', 'info');
+                            }
+                        } else {
+                            this.showAlert('Error: ' + result.message, 'danger');
+                        }
+                    } catch (error) {
+                        this.showAlert('Error loading attendance: ' + error.message, 'danger');
+                    } finally {
+                        this.loadingList = false;
+                    }
+                },
 
-            // Auto-dismiss after 5 seconds
-            setTimeout(() => {
-                const alert = document.querySelector('.alert');
-                if (alert) {
-                    alert.remove();
+                exportExcel() {
+                    if (!this.filters.classroomId || !this.filters.date) {
+                        this.showAlert('Please select both classroom and date to export', 'warning');
+                        return;
+                    }
+                    // Direct download link
+                    window.location.href = `/api/attendance/export?classroomId=${this.filters.classroomId}&date=${this.filters.date}`;
+                },
+
+                getStatusBadgeClass(status) {
+                    switch (status) {
+                        case 'PRESENT': return 'badge bg-success';
+                        case 'LATE': return 'badge bg-warning';
+                        case 'ABSENT': return 'badge bg-danger';
+                        default: return 'badge bg-secondary';
+                    }
+                },
+
+                formatConfidence(score) {
+                    return score ? (score * 100).toFixed(1) + '%' : 'N/A';
                 }
-            }, 5000);
-        }
+            }
+        }).mount('#app');
     </script>
 </body>
 

@@ -52,9 +52,13 @@ async def recognize_face(file: UploadFile = File(...)):
     # Convert to RGB (face_recognition uses RGB)
     rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     
-    # Detect faces
-    face_locations = face_recognition.face_locations(rgb_img)
-    face_encodings = face_recognition.face_encodings(rgb_img, face_locations)
+    # Optimization: Resize image to 1/4 size for faster face recognition processing
+    # This significantly speeds up detection with minimal accuracy loss for reasonably sized faces
+    small_img = cv2.resize(rgb_img, (0, 0), fx=0.25, fy=0.25)
+    
+    # Detect faces in the resized image
+    face_locations = face_recognition.face_locations(small_img)
+    face_encodings = face_recognition.face_encodings(small_img, face_locations)
     
     results = []
     
