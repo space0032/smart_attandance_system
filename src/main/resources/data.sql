@@ -25,12 +25,9 @@ WHERE NOT EXISTS (SELECT 1 FROM students);
 ALTER TABLE classrooms ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM classrooms);
 ALTER TABLE students ALTER COLUMN id RESTART WITH (SELECT COALESCE(MAX(id), 0) + 1 FROM students);
 
--- Insert default admin user only if table is empty (prevents restoring deleted users)
+-- Insert default users only if table is empty (prevents restoring deleted users)
 INSERT INTO users (username, password, role) 
-SELECT 'admin', '$2a$10$zCbLmRKFF4EQlwvQgi/iceecs3d9QsFQdHmm1rXo8/hKjV6SBtIabe', 'ADMIN'
+SELECT * FROM (VALUES
+    ('admin', '$2a$10$zCbLmRKFF4EQlwvQgi/iceecs3d9QsFQdHmm1rXo8/hKjV6SBtIabe', 'ADMIN')
+) AS v(username, password, role)
 WHERE NOT EXISTS (SELECT 1 FROM users);
-
--- Helper user as requested (id/password) - only if table is empty
-INSERT INTO users (username, password, role) 
-SELECT 'id', '$2a$10$zCbLmRKFF4EQlwvQgi/iceecs3d9QsFQdHmm1rXo8/hKjV6SBtIabe', 'ADMIN'
-WHERE NOT EXISTS (SELECT 1 FROM users WHERE username = 'id');

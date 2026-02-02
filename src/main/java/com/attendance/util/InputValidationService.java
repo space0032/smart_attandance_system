@@ -4,7 +4,6 @@ import com.attendance.dto.StudentDTO;
 import com.validator.core.Validator;
 import com.validator.result.ValidationResult;
 import com.validator.sanitizers.Sanitizer;
-import com.validator.sanitizers.Sanitizers;
 import com.validator.validators.Validators;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -117,14 +116,28 @@ public class InputValidationService {
         ValidationResult result = Validator.create()
                 .field("password", password)
                 .validate(Validators.notBlank())
-                .validate(Validators.minLength(6))
+                .validate(Validators.minLength(8))
                 .validate(Validators.maxLength(100))
+                // At least one uppercase
+                .validate(Validators.pattern(".*[A-Z].*"))
+                // At least one number
+                .validate(Validators.pattern(".*[0-9].*"))
+                // At least one special character
+                .validate(Validators.pattern(".*[@#$%^&+=!].*"))
                 .execute();
 
         if (!result.isValid()) {
+            // Map specific pattern failures to readable messages manually if needed
+            // or just return the generic message
             String errorMessage = result.getErrors().stream()
                     .findFirst()
-                    .map(error -> error.getMessage())
+                    .map(error -> {
+                        // Basic custom mapping for better UX
+                        if (error.getMessage().contains("pattern")) {
+                            return "Password must meet complexity requirements (Uppercase, Number, Special Char)";
+                        }
+                        return error.getMessage();
+                    })
                     .orElse("Invalid password");
             log.warn("Password validation failed");
             throw new IllegalArgumentException("Invalid password: " + errorMessage);

@@ -23,6 +23,11 @@ public class CameraService {
      * 
      * @param config Camera configuration
      */
+    /**
+     * Capture frame from active camera and process attendance
+     * 
+     * @param config Camera configuration
+     */
     public void captureAndProcess(CameraConfig config) {
         if (!config.isActive()) {
             return;
@@ -30,19 +35,38 @@ public class CameraService {
 
         String fullUrl = constructUrl(config);
         VideoCapture capture = new VideoCapture();
+        int maxRetries = 3;
+        int attempt = 0;
+        boolean connected = false;
 
         try {
             log.debug("Attempting to connect to camera: {}", config.getClassroom().getCourseCode());
 
-            // Check if URL is a single digit (for local webcam index)
-            if (fullUrl.matches("\\d+")) {
-                capture.open(Integer.parseInt(fullUrl));
-            } else {
-                capture.open(fullUrl);
+            // Retry logic for connection
+            while (attempt < maxRetries && !connected) {
+                try {
+                    attempt++;
+                    if (fullUrl.matches("\\d+")) {
+                        capture.open(Integer.parseInt(fullUrl));
+                    } else {
+                        capture.open(fullUrl);
+                    }
+
+                    if (capture.isOpened()) {
+                        connected = true;
+                    } else {
+                        log.warn("Camera connection attempt {} failed for {}", attempt,
+                                config.getClassroom().getCourseCode());
+                        Thread.sleep(1000); // Wait 1s before retry
+                    }
+                } catch (Exception e) {
+                    log.warn("Error during camera connection attempt {}: {}", attempt, e.getMessage());
+                }
             }
 
-            if (!capture.isOpened()) {
-                log.error("Failed to open camera stream for classroom: {}", config.getClassroom().getCourseCode());
+            if (!connected) {
+                log.error("Failed to connect to camera after {} attempts: {}", maxRetries,
+                        config.getClassroom().getCourseCode());
                 return;
             }
 
