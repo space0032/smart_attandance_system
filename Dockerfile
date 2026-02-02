@@ -40,5 +40,9 @@ ENV JAVA_OPTS="-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -
 
 EXPOSE 8080
 
+# Health check for standalone container monitoring
+HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
+  CMD curl -f http://localhost:8080/actuator/health || exit 1
+
 # Use JAVA_OPTS from docker-compose or environment
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]

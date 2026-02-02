@@ -23,6 +23,7 @@ public class SettingsController {
 
     private final ClassroomRepository classroomRepository;
     private final CameraConfigRepository cameraConfigRepository;
+    private final com.attendance.service.CameraService cameraService;
 
     @GetMapping("/settings")
     public String showSettings(Model model) {
@@ -50,6 +51,17 @@ public class SettingsController {
             @RequestParam(defaultValue = "false") boolean active,
             RedirectAttributes redirectAttributes) {
         try {
+            // Business Logic Validation
+            if (lectureDurationMinutes <= 0) {
+                throw new IllegalArgumentException("Lecture duration must be positive");
+            }
+            if (snapshotsPerLecture <= 0) {
+                throw new IllegalArgumentException("Snapshots per lecture must be positive");
+            }
+            if (recognitionThreshold < 0.1 || recognitionThreshold > 1.0) {
+                throw new IllegalArgumentException("Threshold must be between 0.1 and 1.0");
+            }
+
             Classroom classroom = classroomRepository.findById(classroomId)
                     .orElseThrow(() -> new IllegalArgumentException("Invalid classroom ID"));
 
@@ -91,5 +103,17 @@ public class SettingsController {
             redirectAttributes.addFlashAttribute("errorMessage", "Error updating camera status: " + e.getMessage());
         }
         return "redirect:/settings";
+    }
+
+    @PostMapping("/settings/test-camera")
+    public org.springframework.http.ResponseEntity<Map<String, Object>> testCamera(
+            @RequestParam String rtspUrl,
+            @RequestParam(required = false) String username,
+            @RequestParam(required = false) String password) {
+
+        boolean success = cameraService.testConnection(rtspUrl, username, password);
+        return org.springframework.http.ResponseEntity.ok(Map.of(
+                "success", success,
+                "message", success ? "Connection successful!" : "Failed to connect to camera"));
     }
 }

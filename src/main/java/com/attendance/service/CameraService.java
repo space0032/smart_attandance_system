@@ -105,4 +105,39 @@ public class CameraService {
         }
         return url;
     }
+
+    /**
+     * Test camera connection
+     *
+     * @param rtspUrl  RTSP URL
+     * @param username Camera username
+     * @param password Camera password
+     * @return true if connection successful
+     */
+    public boolean testConnection(String rtspUrl, String username, String password) {
+        CameraConfig tempConfig = new CameraConfig();
+        tempConfig.setRtspUrl(rtspUrl);
+        tempConfig.setUsername(username);
+        tempConfig.setPassword(password);
+
+        String fullUrl = constructUrl(tempConfig);
+        VideoCapture capture = new VideoCapture();
+
+        try {
+            if (fullUrl.matches("\\d+")) {
+                capture.open(Integer.parseInt(fullUrl));
+            } else {
+                capture.open(fullUrl);
+            }
+
+            return capture.isOpened();
+        } catch (Exception e) {
+            log.error("Error testing connection for {}", rtspUrl, e);
+            return false;
+        } finally {
+            if (capture.isOpened()) {
+                capture.release();
+            }
+        }
+    }
 }
