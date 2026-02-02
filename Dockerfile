@@ -7,16 +7,14 @@ WORKDIR /app
 # Copy only pom.xml first - cached until dependencies change
 COPY pom.xml ./
 
-# Download dependencies with cache mount - persists across builds!
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn dependency:go-offline -B
+# Download dependencies
+RUN mvn dependency:go-offline -B
 
-# Copy source code - changes more frequently
+# Copy source code
 COPY src ./src
 
-# Build with cache mount - reuses downloaded dependencies
-RUN --mount=type=cache,target=/root/.m2 \
-    mvn clean package -DskipTests -B && \
+# Build the application
+RUN mvn clean package -DskipTests -B && \
     mv target/smart-attendance-system-*.jar target/app.jar
 
 # Stage 2: Optimized runtime
@@ -42,7 +40,7 @@ EXPOSE 8080
 
 # Health check for standalone container monitoring
 HEALTHCHECK --interval=30s --timeout=10s --retries=3 --start-period=60s \
-  CMD curl -f http://localhost:8080/actuator/health || exit 1
+    CMD curl -f http://localhost:8080/actuator/health || exit 1
 
 # Use JAVA_OPTS from docker-compose or environment
 ENTRYPOINT ["sh", "-c", "java $JAVA_OPTS -jar app.jar"]
