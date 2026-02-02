@@ -45,16 +45,33 @@ async def register_face(request: RegisterRequest):
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
 
+async def validate_image(file: UploadFile):
+    MAX_FILE_SIZE = 5 * 1024 * 1024 # 5MB
+    ALLOWED_TYPES = ["image/jpeg", "image/png", "image/jpg"]
+    
+    if file.content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail="Invalid file type. Only JPEG and PNG allowed.")
+        
+    # Check file size (approximate using seek if needed, but here we read content anyway)
+    # Ideally should check content-length header if trustworthy, but reading is safer for size enforcement
+    return True
+
 @app.post("/recognize")
 async def recognize_face(file: UploadFile = File(...)):
     try:
+        await validate_image(file)
+        
         # Read image file
         contents = await file.read()
+        
+        if len(contents) > 5 * 1024 * 1024:
+             raise HTTPException(status_code=400, detail="File too large (max 5MB)")
+
         nparr = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
         if img is None:
-            raise HTTPException(status_code=400, detail="Invalid image format")
+            raise HTTPException(status_code=400, detail="Invalid image format or corrupted file")
         
         # Convert to RGB (face_recognition uses RGB)
         rgb_img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
@@ -89,13 +106,20 @@ async def recognize_face(file: UploadFile = File(...)):
                 results.append({"student_id": "UNKNOWN", "confidence": 0.0})
                 
         return {"matches": results}
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/encode")
 async def encode_face(file: UploadFile = File(...)):
     try:
+        await validate_image(file)
         contents = await file.read()
+        
+        if len(contents) > 5 * 1024 * 1024:
+             raise HTTPException(status_code=400, detail="File too large (max 5MB)")
+
         nparr = np.frombuffer(contents, np.uint8)
         img = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
         
@@ -110,8 +134,10 @@ async def encode_face(file: UploadFile = File(...)):
             return {"encoding": encodings[0].tolist(), "found": True}
         else:
             return {"found": False}
+    except HTTPException as he:
+        raise he
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=500, detail=str(e))
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=5000)

@@ -42,10 +42,11 @@ public class SecurityConfig {
                                                 .requestMatchers("/", "/login", "/register").permitAll()
                                                 .requestMatchers("/settings/**").hasRole("ADMIN")
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
+                                                .requestMatchers("/api/camera/**").hasRole("ADMIN")
                                                 .anyRequest().authenticated())
                                 .csrf(csrf -> csrf
-                                                .ignoringRequestMatchers("/api/camera/**") // Keep camera stream open if
-                                                                                           // needed, but secure others
+                                                .ignoringRequestMatchers("/ws/**") // WebSockets need CSRF ignore or
+                                                                                   // special handling
                                 )
                                 .formLogin(form -> form
                                                 .loginPage("/login")
