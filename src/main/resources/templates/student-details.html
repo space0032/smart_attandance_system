@@ -5,6 +5,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Student Details - Smart Attendance System</title>
+    <meta name="_csrf" th:content="${_csrf.token}" />
+    <meta name="_csrf_header" th:content="${_csrf.headerName}" />
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
     <style>
@@ -220,9 +222,16 @@
             btn.disabled = true;
             btn.innerText = 'Uploading...';
 
+            // Get CSRF token
+            const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+            const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
             fetch('/api/students/' + studentId + '/photo', {
                 method: 'POST',
-                body: formData
+                body: formData,
+                headers: {
+                    [csrfHeader]: csrfToken
+                }
             })
                 .then(response => response.json())
                 .then(data => {
@@ -247,8 +256,15 @@
 
         function deleteStudent(id) {
             if (confirm('Are you sure you want to delete this student?')) {
+                // Get CSRF token
+                const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
                 fetch('/api/students/' + id, {
-                    method: 'DELETE'
+                    method: 'DELETE',
+                    headers: {
+                        [csrfHeader]: csrfToken
+                    }
                 })
                     .then(response => response.json())
                     .then(data => {

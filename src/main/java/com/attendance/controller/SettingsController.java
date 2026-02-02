@@ -46,6 +46,7 @@ public class SettingsController {
             @RequestParam(required = false) String password,
             @RequestParam(defaultValue = "60") int lectureDurationMinutes,
             @RequestParam(defaultValue = "4") int snapshotsPerLecture,
+            @RequestParam(defaultValue = "0.6") Double recognitionThreshold,
             @RequestParam(defaultValue = "false") boolean active,
             RedirectAttributes redirectAttributes) {
         try {
@@ -61,6 +62,7 @@ public class SettingsController {
             config.setPassword(password);
             config.setLectureDurationMinutes(lectureDurationMinutes);
             config.setSnapshotsPerLecture(snapshotsPerLecture);
+            config.setRecognitionThreshold(recognitionThreshold);
             config.setActive(active);
 
             cameraConfigRepository.save(config);

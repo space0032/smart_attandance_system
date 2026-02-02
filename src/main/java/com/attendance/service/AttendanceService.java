@@ -96,7 +96,11 @@ public class AttendanceService {
                     .map(Student::getFaceEncoding)
                     .toList();
 
-            int matchIndex = faceRecognitionService.recognizeFace(faceEncoding, storedEncodings);
+            // Fetch config for threshold
+            var configOp = cameraConfigRepository.findByClassroomId(classroom.getId());
+            double threshold = configOp.map(com.attendance.model.CameraConfig::getRecognitionThreshold).orElse(0.6);
+
+            int matchIndex = faceRecognitionService.recognizeFace(faceEncoding, storedEncodings, threshold);
 
             if (matchIndex >= 0) {
                 Student recognizedStudent = studentsWithFaces.get(matchIndex);

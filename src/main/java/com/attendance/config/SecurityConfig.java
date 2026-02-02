@@ -21,12 +21,22 @@ public class SecurityConfig {
 
         private final com.attendance.service.CustomUserDetailsService userDetailsService;
 
+        @Bean
+        public org.springframework.security.authentication.dao.DaoAuthenticationProvider authenticationProvider() {
+                org.springframework.security.authentication.dao.DaoAuthenticationProvider authProvider = new org.springframework.security.authentication.dao.DaoAuthenticationProvider();
+                authProvider.setUserDetailsService(userDetailsService);
+                authProvider.setPasswordEncoder(passwordEncoder());
+                authProvider.setHideUserNotFoundExceptions(false); // Enable detailed errors
+                return authProvider;
+        }
+
         /**
          * Configure HTTP security
          */
         @Bean
         public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
                 http
+                                .authenticationProvider(authenticationProvider()) // Use custom provider
                                 .authorizeHttpRequests(authz -> authz
                                                 .requestMatchers("/css/**", "/js/**", "/uploads/**").permitAll()
                                                 .requestMatchers("/", "/login", "/register").permitAll()
@@ -34,7 +44,8 @@ public class SecurityConfig {
                                                 .requestMatchers("/admin/**").hasRole("ADMIN")
                                                 .anyRequest().authenticated())
                                 .csrf(csrf -> csrf
-                                                .ignoringRequestMatchers("/api/**") // Disable CSRF for API endpoints
+                                                .ignoringRequestMatchers("/api/camera/**") // Keep camera stream open if
+                                                                                           // needed, but secure others
                                 )
                                 .formLogin(form -> form
                                                 .loginPage("/login")

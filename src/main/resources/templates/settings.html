@@ -132,6 +132,12 @@
                                     <input type="number" class="form-control" name="snapshotsPerLecture"
                                         th:value="${config != null ? config.snapshotsPerLecture : 4}" min="1">
                                 </div>
+                                <div class="col-md-2">
+                                    <label class="form-label">Threshold (0-1)</label>
+                                    <input type="number" class="form-control" name="recognitionThreshold"
+                                        th:value="${config != null && config.recognitionThreshold != null ? config.recognitionThreshold : 0.6}"
+                                        min="0.1" max="1.0" step="0.05">
+                                </div>
                             </div>
                             <div class="row mt-3 align-items-center">
                                 <div class="col-md-6">

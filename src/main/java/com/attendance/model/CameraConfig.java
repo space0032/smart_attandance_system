@@ -43,6 +43,9 @@ public class CameraConfig {
     @Column(name = "snapshots_per_lecture")
     private int snapshotsPerLecture = 4;
 
+    @Column(name = "recognition_threshold")
+    private Double recognitionThreshold = 0.6;
+
     /**
      * Calculate interval in seconds dynamically
      */

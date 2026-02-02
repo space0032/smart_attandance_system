@@ -101,9 +101,10 @@ public class FaceRecognitionService {
      * 
      * @param faceEncoding    Face encoding to recognize
      * @param storedEncodings List of stored face encodings from database
+     * @param threshold       Similarity threshold (lower is stricter)
      * @return Index of matched encoding, -1 if no match found
      */
-    public int recognizeFace(byte[] faceEncoding, List<byte[]> storedEncodings) {
+    public int recognizeFace(byte[] faceEncoding, List<byte[]> storedEncodings, double threshold) {
         if (faceEncoding == null || faceEncoding.length == 0 || storedEncodings == null) {
             return -1;
         }
@@ -119,7 +120,7 @@ public class FaceRecognitionService {
 
             double distance = calculateEuclideanDistance(faceEncoding, stored);
 
-            if (distance < minDistance && distance < RECOGNITION_THRESHOLD) {
+            if (distance < minDistance && distance < threshold) {
                 minDistance = distance;
                 matchIndex = i;
             }
@@ -128,10 +129,17 @@ public class FaceRecognitionService {
         if (matchIndex >= 0) {
             log.info("Face recognized with confidence: {}", 1.0 - minDistance);
         } else {
-            log.info("No matching face found");
+            log.info("No matching face found (best distance: {}, threshold: {})", minDistance, threshold);
         }
 
         return matchIndex;
+    }
+
+    /**
+     * Recognize a face using default threshold
+     */
+    public int recognizeFace(byte[] faceEncoding, List<byte[]> storedEncodings) {
+        return recognizeFace(faceEncoding, storedEncodings, RECOGNITION_THRESHOLD);
     }
 
     /**

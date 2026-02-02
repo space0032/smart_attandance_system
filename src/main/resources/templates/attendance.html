@@ -267,10 +267,17 @@
                     formData.append('image', fileInput.files[0]);
                     formData.append('classroomId', this.form.classroomId);
 
+                    // Get CSRF token
+                    const csrfToken = document.querySelector('meta[name="_csrf"]').getAttribute('content');
+                    const csrfHeader = document.querySelector('meta[name="_csrf_header"]').getAttribute('content');
+
                     try {
                         const response = await fetch('/api/attendance/process', {
                             method: 'POST',
-                            body: formData
+                            body: formData,
+                            headers: {
+                                [csrfHeader]: csrfToken
+                            }
                         });
                         const result = await response.json();
 

@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Setup Guide - Smart Attendance System</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: #f8f9fa;
+        }
+
+        .navbar {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+
+        .content-card {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .step-icon {
+            width: 50px;
+            height: 50px;
+            background: #e9ecef;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #667eea;
+            font-size: 1.5rem;
+            margin-right: 1rem;
+        }
+
+        .step-title {
+            font-weight: 600;
+            color: #2d3748;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark mb-4">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/">
+                <i class="fas fa-camera me-2"></i>Smart Attendance
+            </a>
+            <div class="ms-auto text-white">
+                <a href="/dashboard" class="btn btn-outline-light btn-sm">Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="container">
+        <div class="content-card mb-4">
+            <h1 class="mb-4"><i class="fas fa-book-open me-2"></i>System Setup Guide</h1>
+            <p class="lead text-muted">Follow these steps to configure your classrooms efficiently.</p>
+
+            <hr>
+
+            <!-- Step 1 -->
+            <div class="d-flex mb-4">
+                <div class="step-icon"><i class="fas fa-mobile-alt"></i></div>
+                <div>
+                    <h4 class="step-title">1. Setup IP Camera</h4>
+                    <p>Install an IP Webcam app on your smartphone or use a dedicated IP camera.</p>
+                    <ul class="text-muted">
+                        <li><strong>Android:</strong> Install "IP Webcam" from Play Store.</li>
+                        <li><strong>Settings:</strong> Set resolution to at least 1280x720.</li>
+                        <li><strong>Start Server:</strong> Open the app and tap "Start Server". Note the IP address
+                            (e.g., <code>192.168.1.5:8080</code>).</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="d-flex mb-4">
+                <div class="step-icon"><i class="fas fa-cogs"></i></div>
+                <div>
+                    <h4 class="step-title">2. Configure Classroom</h4>
+                    <p>Go to the <a href="/settings">Settings Page</a> (Admin only).</p>
+                    <ul class="text-muted">
+                        <li>Enter the <strong>RTSP URL</strong> from your camera app.</li>
+                        <li>Format: <code>rtsp://192.168.1.5:8080/h264_ulaw.sdp</code> (for IP Webcam app).</li>
+                        <li>Set <strong>Snapshots per Lecture</strong> (recommended: 4-6).</li>
+                        <li>Adjust <strong>Threshold</strong> (0.6 is standard). Lower is stricter.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="d-flex mb-4">
+                <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+                <div>
+                    <h4 class="step-title">3. Register Students</h4>
+                    <p>Navigate to <a href="/register">Register Student</a>.</p>
+                    <ul class="text-muted">
+                        <li>Enter student details accurately.</li>
+                        <li><strong>Capture Photo:</strong> Ensure the face is clearly visible, well-lit, and
+                            front-facing.</li>
+                        <li>No sunglasses or masks for enrollment photos.</li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Best Practices -->
+            <div class="alert alert-info mt-4">
+                <h5><i class="fas fa-lightbulb me-2"></i>Tips for Best Accuracy</h5>
+                <ul class="mb-0">
+                    <li>Place camera at eye level near the classroom entrance.</li>
+                    <li>Avoid strong backlighting (windows behind students).</li>
+                    <li>Ensure consistent lighting in the room.</li>
+                </ul>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+
+</html>

@@ -125,4 +125,14 @@ public class DashboardController {
     public String register() {
         return "register";
     }
+
+    /**
+     * System setup guide
+     * 
+     * @return Setup guide template
+     */
+    @GetMapping("/setup-guide")
+    public String setupGuide() {
+        return "setup-guide";
+    }
 }

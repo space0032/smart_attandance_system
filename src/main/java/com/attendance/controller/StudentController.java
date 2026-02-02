@@ -11,8 +11,11 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
+import org.springframework.validation.BindingResult;
 
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 
 /**
  * REST controller for student management
@@ -35,7 +38,16 @@ public class StudentController {
         @PostMapping("/register")
         public ResponseEntity<ApiResponse<Student>> registerStudent(
                         @Valid @ModelAttribute StudentDTO studentDTO,
+                        BindingResult bindingResult,
                         @RequestParam(value = "faceImage", required = false) MultipartFile faceImage) {
+
+                if (bindingResult.hasErrors()) {
+                        Map<String, String> errors = new HashMap<>();
+                        bindingResult.getFieldErrors()
+                                        .forEach(error -> errors.put(error.getField(), error.getDefaultMessage()));
+                        return ResponseEntity.badRequest()
+                                        .body(ApiResponse.error("Validation failed", errors));
+                }
 
                 try {
                         Student student = studentService.registerStudentWithFace(studentDTO, faceImage);

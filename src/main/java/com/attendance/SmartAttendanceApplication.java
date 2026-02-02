@@ -15,6 +15,8 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 public class SmartAttendanceApplication {
 
     public static void main(String[] args) {
+        // Load OpenCV native libraries
+        nu.pattern.OpenCV.loadLocally();
         SpringApplication.run(SmartAttendanceApplication.class, args);
     }
 }
