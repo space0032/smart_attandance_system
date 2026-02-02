@@ -8,20 +8,20 @@
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.2.1</version>
+        <version>3.4.2</version>
         <relativePath/>
     </parent>
     
     <groupId>com.attendance</groupId>
     <artifactId>smart-attendance-system</artifactId>
-    <version>1.0.0</version>
+    <version>1.0.1</version>
     <name>Smart Attendance System</name>
     <description>Face recognition-based smart attendance system</description>
     
     <properties>
         <java.version>17</java.version>
         <opencv.version>4.7.0-0</opencv.version>
-        <poi.version>5.2.3</poi.version>
+        <poi.version>5.3.0</poi.version>
     </properties>
     
     <dependencies>
