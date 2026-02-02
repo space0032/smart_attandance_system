@@ -78,48 +78,71 @@
                     </ul>
                 </div>
             </div>
+        </div>
 
-            <!-- Step 2 -->
-            <div class="d-flex mb-4">
-                <div class="step-icon"><i class="fas fa-cogs"></i></div>
-                <div>
-                    <h4 class="step-title">2. Configure Classroom</h4>
-                    <p>Go to the <a href="/settings">Settings Page</a> (Admin only).</p>
-                    <ul class="text-muted">
-                        <li>Enter the <strong>RTSP URL</strong> from your camera app.</li>
-                        <li>Format: <code>rtsp://192.168.1.5:8080/h264_ulaw.sdp</code> (for IP Webcam app).</li>
-                        <li>Set <strong>Snapshots per Lecture</strong> (recommended: 4-6).</li>
-                        <li>Adjust <strong>Threshold</strong> (0.6 is standard). Lower is stricter.</li>
-                    </ul>
-                </div>
+        <!-- Step 1-B: Laptop Webcam -->
+        <div class="d-flex mb-4">
+            <div class="step-icon"><i class="fas fa-laptop"></i></div>
+            <div>
+                <h4 class="step-title">Option B: Laptop/USB Webcam (Docker Users)</h4>
+                <p class="text-danger small"><i class="fas fa-exclamation-triangle"></i> Docker cannot access your
+                    webcam directly.</p>
+                <p>You must stream your webcam as RTSP using software like <strong>VLC Media Player</strong>:</p>
+                <ol class="small text-muted">
+                    <li>Open VLC > <strong>Media</strong> > <strong>Stream</strong> > <strong>Capture Device</strong>.
+                    </li>
+                    <li>Select your webcam and click <strong>Stream</strong>.</li>
+                    <li><strong>Destination Setup:</strong> Select <strong>RTSP</strong> > Add > Port <code>8554</code>,
+                        Path <code>/live</code>.</li>
+                    <li>Uncheck "Activate Transcoding" (for speed).</li>
+                    <li>Click <strong>Stream</strong>.</li>
+                </ol>
+                <p><strong>URL to use:</strong>
+                    <code>rtsp://<span class="text-primary">YOUR_PC_IP</span>:8554/live</code></p>
             </div>
+        </div>
 
-            <!-- Step 3 -->
-            <div class="d-flex mb-4">
-                <div class="step-icon"><i class="fas fa-user-plus"></i></div>
-                <div>
-                    <h4 class="step-title">3. Register Students</h4>
-                    <p>Navigate to <a href="/register">Register Student</a>.</p>
-                    <ul class="text-muted">
-                        <li>Enter student details accurately.</li>
-                        <li><strong>Capture Photo:</strong> Ensure the face is clearly visible, well-lit, and
-                            front-facing.</li>
-                        <li>No sunglasses or masks for enrollment photos.</li>
-                    </ul>
-                </div>
-            </div>
-
-            <!-- Best Practices -->
-            <div class="alert alert-info mt-4">
-                <h5><i class="fas fa-lightbulb me-2"></i>Tips for Best Accuracy</h5>
-                <ul class="mb-0">
-                    <li>Place camera at eye level near the classroom entrance.</li>
-                    <li>Avoid strong backlighting (windows behind students).</li>
-                    <li>Ensure consistent lighting in the room.</li>
+        <!-- Step 2 -->
+        <div class="d-flex mb-4">
+            <div class="step-icon"><i class="fas fa-cogs"></i></div>
+            <div>
+                <h4 class="step-title">2. Configure Classroom</h4>
+                <p>Go to the <a href="/settings">Settings Page</a> (Admin only).</p>
+                <ul class="text-muted">
+                    <li>Enter the <strong>RTSP URL</strong> from your camera app.</li>
+                    <li>Format: <code>rtsp://192.168.1.5:8080/h264_ulaw.sdp</code> (for IP Webcam app).</li>
+                    <li>Set <strong>Snapshots per Lecture</strong> (recommended: 4-6).</li>
+                    <li>Adjust <strong>Threshold</strong> (0.6 is standard). Lower is stricter.</li>
                 </ul>
             </div>
-
         </div>
+
+        <!-- Step 3 -->
+        <div class="d-flex mb-4">
+            <div class="step-icon"><i class="fas fa-user-plus"></i></div>
+            <div>
+                <h4 class="step-title">3. Register Students</h4>
+                <p>Navigate to <a href="/register">Register Student</a>.</p>
+                <ul class="text-muted">
+                    <li>Enter student details accurately.</li>
+                    <li><strong>Capture Photo:</strong> Ensure the face is clearly visible, well-lit, and
+                        front-facing.</li>
+                    <li>No sunglasses or masks for enrollment photos.</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Best Practices -->
+        <div class="alert alert-info mt-4">
+            <h5><i class="fas fa-lightbulb me-2"></i>Tips for Best Accuracy</h5>
+            <ul class="mb-0">
+                <li>Place camera at eye level near the classroom entrance.</li>
+                <li>Avoid strong backlighting (windows behind students).</li>
+                <li>Ensure consistent lighting in the room.</li>
+            </ul>
+        </div>
+
+    </div>
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
