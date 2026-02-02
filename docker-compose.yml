@@ -20,11 +20,30 @@ services:
     #   - ./python_service:/app
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:5000/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 40s
+
+  mysql:
+    image: mysql:8.0
+    container_name: attendance-mysql
+    restart: always
+    environment:
+      MYSQL_DATABASE: attendancedb
+      MYSQL_ROOT_PASSWORD: abc
+      MYSQL_USER: abc
+      MYSQL_PASSWORD: abc
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin", "ping", "-h", "localhost" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   java-backend:
     build:
@@ -39,7 +58,10 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
-      - DB_URL=jdbc:h2:file:/app/data/attendancedb
+      - DB_URL=jdbc:mysql://mysql:3306/attendancedb?createDatabaseIfNotExist=true&useSSL=false&allowPublicKeyRetrieval=true
+      - DB_USERNAME=abc
+      - DB_PASSWORD=abc
+      - DB_DRIVER=com.mysql.cj.jdbc.Driver
       # JVM memory optimization
       - JAVA_OPTS=-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+UseG1GC -Djava.security.egd=file:/dev/./urandom
     volumes:
@@ -48,15 +70,18 @@ services:
     depends_on:
       python-ai:
         condition: service_healthy
+      mysql:
+        condition: service_healthy
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8080/actuator/health"]
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
 
 # Named volumes for better performance (optional)
-# volumes:
-#   uploads:
-#   data:
+volumes:
+  #   uploads:
+  #   data:
+  mysql_data:
